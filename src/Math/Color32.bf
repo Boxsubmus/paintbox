@@ -22,6 +22,7 @@ extension Color32
 	public static Color32 White => .(255, 255, 255, 255);
 	public static Color32 Black => .(0, 0, 0, 255);
 	public static Color32 Transparent => .(0, 0, 0, 0);
+	public static Color32 Raywhite => Raylib.RAYWHITE;
 
 	public static Color32 Red => .(255, 0, 0, 255);
 	public static Color32 Green => .(0, 255, 0, 255);
