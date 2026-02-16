@@ -16,7 +16,7 @@ namespace RaylibBeefGenerator
         private static StringBuilder OutputString = new StringBuilder();
 
         private static string ExecutingPath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!, "../../../../");
-        private static string OutputDir = Path.Combine(ExecutingPath, "raylib-beef/src/");
+        private static string OutputDir = Path.Combine(ExecutingPath, "src/Raylib/"); 
 
         private static Dictionary<string, FileDefinition> jsonFiles = new()
         {
@@ -75,7 +75,18 @@ namespace RaylibBeefGenerator
 
             {"UpdateCamera", ("CameraMode", "mode")}
         };
-            
+
+        // Ignores these structs because we'll define them ourselves.
+        private static readonly List<String> rlStructsIgnore = new()
+        {
+        };
+
+        // These structs will be renamed to the value key.
+        private static readonly Dictionary<string, string> rlStructsRename = new()
+        {
+            { "Color", "Color32" }
+        };
+
         public struct FileDefinition
         {
             public string FileName;
@@ -89,7 +100,7 @@ namespace RaylibBeefGenerator
         }
 
         #region Output Defines
-        private static string Namespace = "RaylibBeef";
+        private static string Namespace = "Paintbox";
         #endregion
 
         public static void Main(string[] args)
@@ -333,8 +344,14 @@ namespace RaylibBeefGenerator
                 if (alias.Count > 0) AppendLine("");
             }
 
+            var bfName = structu.Name;
+            if (rlStructsRename.ContainsKey(structu.Name))
+            {
+                bfName = rlStructsRename[structu.Name];
+            }
+
             AppendLine($"[CRepr]");
-            AppendLine($"public struct {structu.Name}");
+            AppendLine($"public struct {bfName}");
             AppendLine("{");
             IncreaseTab();
 
@@ -436,6 +453,10 @@ namespace RaylibBeefGenerator
 
         public static string ParseValue(this string inputValue, string type)
         {
+            foreach (var check in rlStructsRename)
+            {
+                inputValue = ReplaceWholeWord(inputValue, check.Key, check.Value);
+            }
             if (inputValue.StartsWith("CLITERAL"))
             {
                 inputValue = inputValue.Remove(0, 9);
@@ -476,6 +497,11 @@ namespace RaylibBeefGenerator
             input = ReplaceWholeWord(input, "FLOAT_MATH", "float");
             input = ReplaceWholeWord(input, "DOUBLE", "double");
             input = ReplaceWholeWord(input, "COLOR", "Color");
+
+            foreach (var check in rlStructsRename)
+            {
+                input = ReplaceWholeWord(input, check.Key, check.Value);
+            }
 
             if (input.StartsWith("const"))
                 input = input.Remove(0, 6);
